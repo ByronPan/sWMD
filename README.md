@@ -7,6 +7,6 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 ###############################################################################
 2.Getting start.
 Make sure that all the files and documents in a same directory. Please run the code by:
->>python swmd.py
+>> python swmd.py
 For a detailed list of functionality see "functions.m"
 ###############################################################################
