@@ -1,22 +1,23 @@
 # sWMD
-sWMD in python
+## sWMD in python
 
 \###############################################################################
-0.Required.
+
+### 0.Required.
 
 * Python 2
 * numpy
 * scipy version of 0.18.1
 
 
-1.Introduction.
+### 1.Introduction.
 
 An efficient technique to learn a supervised metric, which we call the Supervised WMD (S-WMD) metric. To see the details, please refer http://papers.nips.cc/paper/6139-graph-clustering-block-models-and-model-free-results.pdf
 
 
 \###############################################################################
 
-2.Getting start.
+### 2.Getting start.
 
 Make sure that all the files and documents in a same directory. Please run the code by:
 
