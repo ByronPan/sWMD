@@ -21,7 +21,10 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 
 Make sure that all the files and documents in a same directory. Please run the code by:
 
-\>> python swmd.py
+```python
+>>> ipython swmd.py
+
+```
 
 For a detailed list of functionality see "functions.m"
 
