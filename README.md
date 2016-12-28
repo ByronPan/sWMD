@@ -7,7 +7,7 @@
 
 * Python 2
 * numpy
-* scipy version of 0.18.1
+* scipy 0.18.1
 
 
 ### 2.Introduction.
