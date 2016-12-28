@@ -2,6 +2,12 @@
 sWMD in python
 
 \###############################################################################
+0.Required.
+
+* Python 2
+* numpy
+* scipy version of 0.18.1
+
 
 1.Introduction.
 
