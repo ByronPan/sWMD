@@ -11,8 +11,8 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 ### 2.Required.
 
 * Python 2
-* numpy
-* scipy 0.18.1
+** numpy
+** scipy 0.18.1
 
 
 
