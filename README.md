@@ -19,11 +19,17 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 ### 3.Getting start.
 Download the fold "dataset" from https://github.com/ByronPan/S-WMD.  
 
-Make sure that all the files and documents in a same directory. Please run the code by:
+Make sure that all the files and documents in a same directory. First compile the code by:
+
+```python
+>>> python setup.py build_ext --inplace
+
+```
+Then run the code by:
 
 ```python
 >>> ipython swmd.py
 
 ```
 
-For a detailed list of functionality see "functions.m"
+For a detailed list of functionality see "functions.pyx"
