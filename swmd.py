@@ -23,10 +23,10 @@ save_path = 'results/'
 dataset = 'bbcsport'
 MAX_DICT_SIZE = 50000
 
-max_iter = 5#200
+max_iter = 200
 save_frequency = max_iter
-batch = 2#32
-rangE = 3#200
+batch = 32
+rangE = 20
 lr_w = 1e+1
 lr_A = 1e+0
 lambdA = 10
@@ -114,13 +114,13 @@ for split in range(1,cv_folds+1):
         A = A - lr_A * dA
 
 
+        if iter == 1 or iter == 3 or iter == 10 or iter == 50 or iter == 200:
+            ########### Compute loss
+            filename = save_path + dataset + '_' + str(lambdA) + '_' + str(lr_w) + '_' + str(lr_A) + '_' + str(max_iter) + '_' + str(batch) + '_' + str(rangE) + '_' + str(split) + '_iter ' + str(iter) + '.mat'
+            err_v = f.knn_swmd(xtr, ytr, xv, yv, BOW_xtr, BOW_xv, indices_tr, indices_v, w, lambdA, A)    
+            err_t = f.knn_swmd(xtro, ytro, xte, yte, BOW_xtro, BOW_xte, indices_tro, indices_te, w, lambdA, A)
 
-    ########### Compute loss
-    filename = save_path + dataset + '_' + str(lambdA) + '_' + str(lr_w) + '_' + str(lr_A) + '_' + str(max_iter) + '_' + str(batch) + '_' + str(rangE) + '_' + str(split) + '.mat'
-    err_v = f.knn_swmd(xtr, ytr, xv, yv, BOW_xtr, BOW_xv, indices_tr, indices_v, w, lambdA, A)    
-    err_t = f.knn_swmd(xtro, ytro, xte, yte, BOW_xtro, BOW_xte, indices_tro, indices_te, w, lambdA, A)
-
-    sio.savemat(filename, {'err_v':err_v, 'err_t':err_t, 'w':w, 'A':A})
+            sio.savemat(filename, {'err_v':err_v, 'err_t':err_t, 'w':w, 'A':A})
         
     err_t_cv = err_t[err_v == np.min(err_v)]
     results_cv[split-1] = err_t_cv[0]
