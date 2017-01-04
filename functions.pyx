@@ -11,6 +11,11 @@ import gc
 from scipy import stats
 import multiprocessing as mul
 import scipy.spatial.distance as sdist
+import pyximport
+pyximport.install(reload_support=True)
+cimport numpy as np
+cimport cython
+
 
 def pp():
     print 'haha'
@@ -103,7 +108,10 @@ def makesplits(y,split,splits,classsplit=0,k=1):
     return train,test
 
 
-def distance(X,x):
+def distance(np.ndarray[np.double_t, ndim =2] X, np.ndarray[np.double_t, ndim =2] x):
+    cdef int D,N,d,n
+    cdef np.ndarray[np.double_t, ndim =2] dist
+    
     D = np.size(X[:,0])
     N = np.size(X[0,:])
     d = np.size(x[:,0])
@@ -142,7 +150,8 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
         bow_i = BOW_xtr[i].T
         a = bow_i * w[idx_i]
         a = a / sum(a)
-
+        
+        
         nn_set = np.argsort(Dc[:,i]) #sort by the order of the distance to the 'i' document
 
         # Compute WMD from xi to the rest documents
@@ -168,6 +177,7 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             bow_j = BOW_xtr_nn[j].T
             b = bow_j * w[idx_j]
             b = b / sum(b)
+            b.shape = (np.size(b),1)
             
             result.append(pool.apply_async(sinkhorn3, (ii, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
             
@@ -196,6 +206,7 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             xj = r[5]
             a = r[6]
             b = r[7]
+            b.shape = (np.size(b),)
             sumA = np.dot(xi*a.T, xi.T) + np.dot(xj*b.T, xj.T) - np.dot(np.dot(xi, T), xj.T) - np.dot(np.dot(xj, T.T), xi.T)
             dd_dA_all[j] = sumA
             j+=1        
@@ -302,7 +313,13 @@ def sinkhorn(M, a, b, lambdA, max_iter, tol):
     
     return alpha, beta, T, obj_primal
     
-def sinkhorn2(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
+def sinkhorn2(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.double_t, ndim =2] xi,  np.ndarray[np.double_t, ndim =2] xj, np.ndarray[np.double_t, ndim =2] a,  np.ndarray[np.double_t, ndim =2] b, int lambdA, int max_iter, float tol):
+
+    cdef float epsilon, change, obj_primal
+    cdef np.ndarray[np.double_t, ndim =2] M, K, Kt, u, u0, v, alpha, beta, T
+    cdef np.ndarray[np.double_t, ndim =1] z
+    cdef int l, iteR
+
     epsilon = 1e-10
    # print "Left "+ str(i) + " right " + str(j) + " is begined"
     M = distance(np.dot(A,xi), np.dot(A,xj))
@@ -314,7 +331,7 @@ def sinkhorn2(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
     u = np.ones([l,1]) /l
     iteR = 0
     change = np.inf
-    b.shape = (np.size(b),1)
+   # b.shape = (np.size(b),1)
     
     
     while change > tol and iteR <= max_iter:
@@ -336,21 +353,29 @@ def sinkhorn2(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
     alpha = 1.0/lambdA * (alpha - np.mean(alpha))
     beta = np.log(v)
     beta = 1.0/lambdA * (beta - np.mean(beta))
-    v.shape = (np.size(v),)
-    T = v * (K * u)
-    obj_primal = sum(sum(T*M))
+    #v.shape = (np.size(v),)
+    z = v.T[0]
+    T = z * (K * u)
+    obj_primal = np.sum(T*M)#sum(sum(T*M))
   #  obj_dual = a * alpha + b * beta
   
     
     
   
-    del K, Kt, u, v, change, a, b  
-    gc.collect()
-   # print "Left "+ str(i) + " right " + str(j) + " is finished"
+    #del K, Kt, u, v, change, a, b  
+    #gc.collect()
+    print "Left "+ str(i) + " right " + str(j) + " is finished"
     return alpha, beta, T, obj_primal
     
 
-def sinkhorn3(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
+def sinkhorn3(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.double_t, ndim =2] xi,  np.ndarray[np.double_t, ndim =2] xj, np.ndarray[np.double_t, ndim =2] a,  np.ndarray[np.double_t, ndim =2] b, int lambdA, int max_iter, float tol):
+
+    cdef float epsilon, change, obj_primal
+    cdef np.ndarray[np.double_t, ndim =2] M, K, Kt, u, u0, v, alpha, beta, T
+    cdef np.ndarray[np.double_t, ndim =1] z
+    cdef int l, iteR
+
+
     epsilon = 1e-10
    # print "Left "+ str(i) + " right " + str(j) + " is begined"
     M = distance(np.dot(A,xi), np.dot(A,xj))
@@ -362,7 +387,7 @@ def sinkhorn3(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
     u = np.ones([l,1]) /l
     iteR = 0
     change = np.inf
-    b.shape = (np.size(b),1)
+    #b.shape = (np.size(b),1)
     
     
     while change > tol and iteR <= max_iter:
@@ -383,16 +408,17 @@ def sinkhorn3(i, j, A, xi, xj, a, b, lambdA, max_iter, tol):
     alpha = 1.0/lambdA * (alpha - np.mean(alpha))
     beta = np.log(v)
     beta = 1.0/lambdA * (beta - np.mean(beta))
-    v.shape = (np.size(v),)
-    T = v * (K * u)
-    obj_primal = sum(sum(T*M))
+    #v.shape = (np.size(v),)
+    z = v.T[0]
+    T = z * (K * u)
+    obj_primal = np.sum(T*M)#sum(sum(T*M))
   #  obj_dual = a * alpha + b * beta
   
     
     
   
-    del K, Kt, u, v, change
-    gc.collect()
+    #del K, Kt, u, v, z,change
+   # gc.collect()
  #   print "Left "+ str(i) + " right " + str(j) + " is finished"
     return alpha, beta, T, obj_primal, xi, xj, a, b
 
@@ -422,6 +448,7 @@ def knn_swmd(xtr, ytr, xte, yte, BOW_xtr, BOW_xte, indices_tr, indices_te, w, la
             bow_j.shape = [np.size(bow_j),1]
             b = bow_j * w[indices_te[j]][0]
             b = b / sum(b)
+            b.shape = (np.size(b),1)
             
            # D = distance(np.dot(A,xi), np.dot(A,xj))
            # D[D < 0] = 0
@@ -433,7 +460,7 @@ def knn_swmd(xtr, ytr, xte, yte, BOW_xtr, BOW_xte, indices_tr, indices_te, w, la
             #Wi[j] = dprimal
 
         #WMD[i,:] = Wi
-       # print "The training data i: " + str(i+1) + " is done"
+        
     
     pool.close()
     pool.join()

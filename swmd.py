@@ -8,6 +8,8 @@ import scipy.io as sio
 import numpy as np
 import random
 import gc
+import pyximport
+pyximport.install(reload_support=True)
 
 pwd = os.getcwd()
 
@@ -93,7 +95,7 @@ for split in range(1,cv_folds+1):
     w = np.ones([MAX_DICT_SIZE,1])
 
     ########### Test learned metric for WCD   TO BE CONTINUED!!
-    Dc = f.distance(xtr_center, xte_center)
+   # Dc = f.distance(xtr_center, xte_center)
 
 
     ########### Main loop
