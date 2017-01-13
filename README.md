@@ -13,6 +13,7 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 * Python 2
 * numpy
 * scipy 0.18.1
+* cython
 
 
 
