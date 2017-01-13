@@ -2,7 +2,7 @@
 ###### Writen by Boyuan Pan ######
 ##################################
 
-
+import os
 import scipy.io as sio
 import numpy as np
 import random
@@ -69,7 +69,7 @@ def makesplits(y,split,splits,classsplit=0,k=1):
     if minclass(y,np.array(range(0,len(y)))) < k or split * len(y) / len(np.unique(y)) < k :
         print 'K:'+ k + ' split:' + split + ' n:' + len(y)
         print 'Cannot sub-sample splits! Reduce number of neighbors.'
-        exit(1)
+        os._exit()
 
 
     if classsplit:
@@ -118,7 +118,7 @@ def distance(np.ndarray[np.double_t, ndim =2] X, np.ndarray[np.double_t, ndim =2
     n = np.size(x[0,:])
     if D!=d:
         print 'Both sets of vectors must have same dimensionality!'
-        exit(1)   
+        os._exit()   
     dist = sdist.cdist(X.T,x.T,'sqeuclidean')
     
 
@@ -147,10 +147,16 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
         yi = ytr[i]
         idx_i = indices_tr[i]
         idx_i.shape = idx_i.size
-        bow_i = BOW_xtr[i].T
+        bow_i = BOW_xtr[i]
+        bow_i.shape = (np.size(bow_i),1)
         a = bow_i * w[idx_i]
         a = a / sum(a)
-        
+
+       # print "A = ", A.shape
+       # print "w = ", w.shape
+      #  print "bow_i = ", bow_i.shape
+      #  print "w[idx_i] = ", w[idx_i].shape
+      #  print "a = ", a.shape
         
         nn_set = np.argsort(Dc[:,i]) #sort by the order of the distance to the 'i' document
 
@@ -167,19 +173,24 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
         indices_tr_nn = indices_tr[nn_set]
 
         pool = mul.Pool(processes = 6)
-        result = []
+        RES = []
 
         for j in range(0,rangE):
             xj = xtr_nn[j]
             yj = ytr_nn[j]
             #M = distance(np.dot(A,xi), np.dot(A,xj))
             idx_j = indices_tr_nn[j]
-            bow_j = BOW_xtr_nn[j].T
+            idx_j.shape = idx_j.size
+            bow_j = BOW_xtr_nn[j]
+            bow_j.shape = (np.size(bow_j),1)
             b = bow_j * w[idx_j]
             b = b / sum(b)
-            b.shape = (np.size(b),1)
+            #b.shape = (np.size(b),1)
+          #  print "bow_j = ", bow_j.shape
+          #  print "w[idx_j] = ", w[idx_j].shape
+          #  print "b = ", b.shape
             
-            result.append(pool.apply_async(sinkhorn3, (ii, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
+            RES.append(pool.apply_async(sinkhorn3, (ii, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
             
             #[alpha, beta, T, dprimal] = sinkhorn(M, a, b, lambdA, 200, 1e-3) 
             #Di[j] = dprimal
@@ -196,8 +207,9 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
     
 
         j = 0
-        for res in result:
+        for res in RES:
             r = res.get()
+            #print r
             Di[j] = r[3]
             alpha_all[j] = r[0]
             beta_all[j] = r[1]
@@ -206,7 +218,15 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             xj = r[5]
             a = r[6]
             b = r[7]
+            a.shape = (np.size(a),)
             b.shape = (np.size(b),)
+            # print "a = ",a
+            # print "b = ",b
+           # print "xi = ", xi.shape
+           # print "a = ", a.shape
+           # print "xj = ", xj.shape
+           # print "b = ", b.shape
+           # print "T = ", T.shape
             sumA = np.dot(xi*a.T, xi.T) + np.dot(xj*b.T, xj.T) - np.dot(np.dot(xi, T), xj.T) - np.dot(np.dot(xj, T.T), xi.T)
             dd_dA_all[j] = sumA
             j+=1        
@@ -252,7 +272,7 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             
             
             
-        print "Batch " + str(ii+1) + " finished!"
+       # print "Batch " + str(ii+1) + " finished!"
         
         
         
@@ -364,7 +384,7 @@ def sinkhorn2(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
   
     #del K, Kt, u, v, change, a, b  
     #gc.collect()
-    print "Left "+ str(i) + " right " + str(j) + " is finished"
+    print "ntr "+ str(i) + " nte " + str(j) + " is finished"
     return alpha, beta, T, obj_primal
     
 
@@ -413,13 +433,13 @@ def sinkhorn3(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
     T = z * (K * u)
     obj_primal = np.sum(T*M)#sum(sum(T*M))
   #  obj_dual = a * alpha + b * beta
-  
+   # bb = b.T[0]
     
     
   
     #del K, Kt, u, v, z,change
    # gc.collect()
- #   print "Left "+ str(i) + " right " + str(j) + " is finished"
+   # print "Batch "+ str(i) + " Neighbor " + str(j) + " is finished"
     return alpha, beta, T, obj_primal, xi, xj, a, b
 
 

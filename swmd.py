@@ -9,7 +9,7 @@ import numpy as np
 import random
 import gc
 import pyximport
-pyximport.install(reload_support=True)
+#pyximport.install(reload_support=True)
 
 pwd = os.getcwd()
 
@@ -25,10 +25,10 @@ save_path = 'results/'
 dataset = 'bbcsport'
 MAX_DICT_SIZE = 50000
 
-max_iter = 200
+max_iter = 50
 save_frequency = max_iter
 batch = 32
-rangE = 20
+rangE = 200
 lr_w = 1e+1
 lr_A = 1e+0
 lambdA = 10
@@ -37,12 +37,16 @@ cv_folds = 5#5
 results_cv = np.zeros(cv_folds)
 
 for split in range(1,cv_folds+1):
+    #err_v = np.zeros([5,19])
+    #err_t = np.zeros([5,19])
+    sv = 0
+
     save_couter = 0
     Err_v = []
     Err_t = []
     w_all = []
     A_all = []
-    [xtr,xte,ytr,yte, BOW_xtr,BOW_xte, indices_tr, indices_te] = f.load_data(dataset, split)
+    [xtr,xte,ytr,yte, BOW_xtr,BOW_xte, indices_tr, indices_te] = f.load_data(dataset, split-1)
     [idx_tr, idx_val] = f.makesplits(ytr, 1-1.0/cv_folds, 1, 1)
     
     
@@ -115,21 +119,29 @@ for split in range(1,cv_folds+1):
         w[w>upper_bound] = upper_bound
         A = A - lr_A * dA
 
+        
 
-        if iter == 1 or iter == 3 or iter == 10 or iter == 50 or iter == 200:
+        if iter == save_frequency: #iter == 1 or iter == 3 or iter == 10 or iter == 50 or iter == 200:
             ########### Compute loss
-            filename = save_path + dataset + '_' + str(lambdA) + '_' + str(lr_w) + '_' + str(lr_A) + '_' + str(max_iter) + '_' + str(batch) + '_' + str(rangE) + '_' + str(split) + '_iter ' + str(iter) + '.mat'
+            filename = save_path + dataset + '_' + str(lambdA) + '_' + str(int(lr_w)) + '_' + str(int(lr_A)) + '_' + str(max_iter) + '_' + str(batch) + '_' + str(rangE) + '_' + str(split) + '.mat'
             err_v = f.knn_swmd(xtr, ytr, xv, yv, BOW_xtr, BOW_xv, indices_tr, indices_v, w, lambdA, A)    
             err_t = f.knn_swmd(xtro, ytro, xte, yte, BOW_xtro, BOW_xte, indices_tro, indices_te, w, lambdA, A)
-
+            sv += 1
             sio.savemat(filename, {'err_v':err_v, 'err_t':err_t, 'w':w, 'A':A})
+
+            
+        del dw, dA
+        gc.collect()
         
     err_t_cv = err_t[err_v == np.min(err_v)]
     results_cv[split-1] = err_t_cv[0]
+    sio.savemat(save_path + dataset + '_results', {'results_cv':results_cv})
+    
+    
 
 
     
-sio.savemat(save_path + dataset + '_results', {'results_cv':results_cv})
+
 
 
 
