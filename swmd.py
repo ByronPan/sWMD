@@ -25,7 +25,7 @@ save_path = 'results/'
 dataset = 'bbcsport'
 MAX_DICT_SIZE = 50000
 
-max_iter = 50
+max_iter = 200
 save_frequency = max_iter
 batch = 32
 rangE = 200
@@ -72,17 +72,17 @@ for split in range(1,cv_folds+1):
 
 
     ########## Compute document center
-    xtr_center = np.zeros([dim, ntr],dtype = np.int)
+    xtr_center = np.zeros([dim, ntr],dtype = np.float)
     for i in range(0,ntr):
     	rc= np.dot(xtr[i], BOW_xtr[i].T )/ sum(sum(BOW_xtr[i]))
     	rc.shape = rc.size
     	xtr_center[:,i] = rc
-    xv_center = np.zeros([dim, nv],dtype = np.int)
+    xv_center = np.zeros([dim, nv],dtype = np.float)
     for i in range(0,nv):
     	vc = np.dot(xv[i], BOW_xv[i].T)/ sum(sum(BOW_xv[i]))
     	vc.shape = vc.size
     	xv_center[:,i] = vc
-    xte_center = np.zeros([dim, nte],dtype = np.int)
+    xte_center = np.zeros([dim, nte],dtype = np.float)
     for i in range(0,nte):
     	ec = np.dot(xte[i], BOW_xte[i].T) / sum(sum(BOW_xte[i]))
     	ec.shape = ec.size
