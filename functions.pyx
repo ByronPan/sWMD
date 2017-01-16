@@ -151,12 +151,6 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
         bow_i.shape = (np.size(bow_i),1)
         a = bow_i * w[idx_i]
         a = a / sum(a)
-
-       # print "A = ", A.shape
-       # print "w = ", w.shape
-      #  print "bow_i = ", bow_i.shape
-      #  print "w[idx_i] = ", w[idx_i].shape
-      #  print "a = ", a.shape
         
         nn_set = np.argsort(Dc[:,i]) #sort by the order of the distance to the 'i' document
 
@@ -185,22 +179,9 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             bow_j.shape = (np.size(bow_j),1)
             b = bow_j * w[idx_j]
             b = b / sum(b)
-            #b.shape = (np.size(b),1)
-          #  print "bow_j = ", bow_j.shape
-          #  print "w[idx_j] = ", w[idx_j].shape
-          #  print "b = ", b.shape
             
             RES.append(pool.apply_async(sinkhorn3, (ii, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
             
-            #[alpha, beta, T, dprimal] = sinkhorn(M, a, b, lambdA, 200, 1e-3) 
-            #Di[j] = dprimal
-
-            #alpha_all[j] = alpha
-            #beta_all[j] = beta
-
-            ## Gradient for metric
-           #sumA = np.dot(xi*a.T, xi.T) + np.dot(xj*b.T, xj.T) - np.dot(np.dot(xi, T), xj.T) - np.dot(np.dot(xj, T.T), xi.T)
-           #dd_dA_all[j] = sumA
 
         pool.close()
         pool.join()
@@ -209,7 +190,6 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
         j = 0
         for res in RES:
             r = res.get()
-            #print r
             Di[j] = r[3]
             alpha_all[j] = r[0]
             beta_all[j] = r[1]
@@ -220,13 +200,7 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             b = r[7]
             a.shape = (np.size(a),)
             b.shape = (np.size(b),)
-            # print "a = ",a
-            # print "b = ",b
-           # print "xi = ", xi.shape
-           # print "a = ", a.shape
-           # print "xj = ", xj.shape
-           # print "b = ", b.shape
-           # print "T = ", T.shape
+
             sumA = np.dot(xi*a.T, xi.T) + np.dot(xj*b.T, xj.T) - np.dot(np.dot(xi, T), xj.T) - np.dot(np.dot(xj, T.T), xi.T)
             dd_dA_all[j] = sumA
             j+=1        
@@ -269,14 +243,8 @@ def grad_swmd(xtr, ytr, BOW_xtr, indices_tr, xtr_center, w, A, lambdA, batch, ra
             tr_loss = tr_loss - np.log(pa)
         else:
             n_nan = n_nan + 1
-            
-            
-            
-       # print "Batch " + str(ii+1) + " finished!"
-        
-        
-        
-        
+
+     
 
     batch = batch - n_nan
     if n_nan > 0:
@@ -341,7 +309,7 @@ def sinkhorn2(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
     cdef int l, iteR
 
     epsilon = 1e-10
-   # print "Left "+ str(i) + " right " + str(j) + " is begined"
+
     M = distance(np.dot(A,xi), np.dot(A,xj))
     M[M<0] = 0
     
@@ -351,7 +319,7 @@ def sinkhorn2(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
     u = np.ones([l,1]) /l
     iteR = 0
     change = np.inf
-   # b.shape = (np.size(b),1)
+
     
     
     while change > tol and iteR <= max_iter:
@@ -379,11 +347,6 @@ def sinkhorn2(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
     obj_primal = np.sum(T*M)#sum(sum(T*M))
   #  obj_dual = a * alpha + b * beta
   
-    
-    
-  
-    #del K, Kt, u, v, change, a, b  
-    #gc.collect()
     print "ntr "+ str(i) + " nte " + str(j) + " is finished"
     return alpha, beta, T, obj_primal
     
@@ -397,7 +360,7 @@ def sinkhorn3(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
 
 
     epsilon = 1e-10
-   # print "Left "+ str(i) + " right " + str(j) + " is begined"
+
     M = distance(np.dot(A,xi), np.dot(A,xj))
     M[M<0] = 0
     
@@ -433,13 +396,7 @@ def sinkhorn3(int i, int j,  np.ndarray[np.double_t, ndim =2] A, np.ndarray[np.d
     T = z * (K * u)
     obj_primal = np.sum(T*M)#sum(sum(T*M))
   #  obj_dual = a * alpha + b * beta
-   # bb = b.T[0]
-    
-    
-  
-    #del K, Kt, u, v, z,change
-   # gc.collect()
-   # print "Batch "+ str(i) + " Neighbor " + str(j) + " is finished"
+
     return alpha, beta, T, obj_primal, xi, xj, a, b
 
 
@@ -470,17 +427,9 @@ def knn_swmd(xtr, ytr, xte, yte, BOW_xtr, BOW_xte, indices_tr, indices_te, w, la
             b = b / sum(b)
             b.shape = (np.size(b),1)
             
-           # D = distance(np.dot(A,xi), np.dot(A,xj))
-           # D[D < 0] = 0
-            
-            result.append(pool.apply_async(sinkhorn2, (i, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
-            #print "j " + str(j+1) + " done"
-            #[alpha, beta, T, dprimal] = sinkhorn(D, a, b, lambdA, 200, 1e-3)
-        
-            #Wi[j] = dprimal
 
-        #WMD[i,:] = Wi
-        
+            result.append(pool.apply_async(sinkhorn2, (i, j, A, xi, xj, a, b, lambdA, 200, 1e-3,)))
+
     
     pool.close()
     pool.join()
