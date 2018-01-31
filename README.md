@@ -29,7 +29,7 @@ Make sure that all the files and documents in a same directory. First compile th
 Then run the code by:
 
 ```python
-	$ python swmd.py
+>>> python swmd.py
 
 ```
 
