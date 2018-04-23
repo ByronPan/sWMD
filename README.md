@@ -18,7 +18,7 @@ An efficient technique to learn a supervised metric, which we call the Supervise
 
 
 ### 3.Getting start.
-Download the fold "dataset" from https://github.com/ByronPan/S-WMD.  
+Download the fold "dataset" from https://github.com/gaohuang/S-WMD.  
 
 Make sure that all the files and documents in a same directory. First compile the code by:
 
